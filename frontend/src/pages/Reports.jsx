@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { useQuery, useMutation } from '@tantml:invoke>
-<parameter name="content">import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { useToast } from '@/components/ui/use-toast'
-import { reportAPI, uploadAPI } from '@/services/api'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Button } from '../components/ui/button'
+import { useToast } from '../components/ui/use-toast'
+import { reportAPI, uploadAPI } from '../services/api'
 import { FileText, Download, Loader2, Trash2 } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
 
 export default function Reports() {
   const { toast } = useToast()
@@ -88,7 +87,7 @@ export default function Reports() {
                     <FileText className="h-6 w-6 text-primary" />
                     <div>
                       <p className="font-semibold">Report {report.id.slice(0, 8)}</p>
-                      <p className="text-sm text-muted-foreground">{formatDate(report.created_at)}</p>
+                      <p className="text-sm text-muted-foreground">{new Date(report.created_at).toLocaleDateString()}</p>
                     </div>
                   </div>
                   <div className="flex space-x-2">
