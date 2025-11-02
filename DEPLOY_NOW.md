@@ -11,21 +11,39 @@ You need to deploy the backend and update Vercel!
 
 ---
 
-## ⚡ FASTEST SOLUTION: Railway (10 minutes)
+## 🎯 FREE DEPLOYMENT OPTIONS
 
-### Step 1: Deploy Backend (5 min)
+### Option 1: **Render** (Easiest - 10 min)
+- ✅ Free tier available
+- ✅ Dashboard-based (no CLI needed)
+- ⚠️ Cold starts after 15 min inactivity
 
-1. **Go to** [railway.app](https://railway.app) and sign in with GitHub
+### Option 2: **Fly.io** (Best - 15 min)
+- ✅ Free tier (3 VMs)
+- ✅ No cold starts (always on!)
+- ⚠️ Requires CLI setup
 
-2. **Click** "New Project" → "Deploy from GitHub repo"
+---
 
-3. **Select** your `predictive-maintenance` repository
+## ⚡ RECOMMENDED: Render (Dashboard Deploy)
+
+### Step 1: Deploy Backend to Render (5 min)
+
+1. **Go to** [render.com](https://render.com) and sign in with GitHub
+
+2. **Click** "New +" → "Web Service"
+
+3. **Connect** your `predictive-maintenance` repository
 
 4. **Configure Service:**
+   - Name: `semiconductor-insights-api`
    - Root Directory: `backend`
-   - No other changes needed (Railway auto-detects Python)
+   - Runtime: `Python 3`
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - Instance Type: **Free**
 
-5. **Add Environment Variables** (click "Variables" tab):
+5. **Add Environment Variables** (click "Advanced" → "Add Environment Variable"):
 
 ```bash
 # Copy these from Supabase Dashboard → Settings → API
@@ -52,9 +70,9 @@ MODELS_BUCKET=models
 REPORTS_BUCKET=reports
 ```
 
-6. **Click** "Deploy" and wait ~3 minutes
+6. **Click** "Create Web Service" and wait ~3-5 minutes
 
-7. **Copy your Railway URL** (looks like: `https://xxxxx.up.railway.app`)
+7. **Copy your Render URL** (looks like: `https://semiconductor-insights-api.onrender.com`)
 
 ### Step 2: Update Vercel (2 min)
 
@@ -64,7 +82,7 @@ REPORTS_BUCKET=reports
 
 3. **Find** `VITE_API_URL` or add it:
    - Name: `VITE_API_URL`
-   - Value: `https://xxxxx.up.railway.app` (your Railway URL)
+   - Value: `https://semiconductor-insights-api.onrender.com` (your Render URL)
    - Environment: Production (and Preview, Development)
 
 4. **Click** "Save"
@@ -184,23 +202,25 @@ If you see CORS errors:
 
 ## 🐛 Troubleshooting
 
-### Issue: Railway build fails
+### Issue: Render build fails
 
 **Check:**
 - `backend/requirements.txt` exists
-- Railway root directory is set to `backend`
+- Render root directory is set to `backend`
+- Build command is correct: `pip install -r requirements.txt`
 - No syntax errors in Python files
 
-**View logs:** Railway Dashboard → Deployments → Click on deployment
+**View logs:** Render Dashboard → Logs tab
 
 ### Issue: App crashes after deploy
 
 **Check:**
-- All environment variables are set in Railway
+- All environment variables are set in Render
 - `SECRET_KEY` is generated (not empty)
 - Supabase credentials are correct
+- Start command is correct: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 
-**View logs:** Railway → Deployments → View logs
+**View logs:** Render Dashboard → Logs tab
 
 ### Issue: Frontend still shows "your-backend-url.com"
 
@@ -213,10 +233,10 @@ If you see CORS errors:
 ### Issue: CORS errors
 
 **Fix:**
-1. Railway → Variables → Update `CORS_ORIGINS`
+1. Render Dashboard → Environment → Update `CORS_ORIGINS`
 2. Must include full URL: `https://predictive-maintenance-ochre.vercel.app`
 3. No trailing slash
-4. Redeploy backend
+4. Click "Manual Deploy" → "Deploy latest commit"
 
 ---
 
@@ -237,15 +257,28 @@ ngrok http 8000
 
 Copy the ngrok URL (e.g., `https://abc123.ngrok.io`) and use it as `VITE_API_URL` in Vercel.
 
-**Note:** Ngrok URLs change on restart - Railway is better for persistent deployment.
+**Note:** Ngrok URLs change on restart - Render/Fly.io are better for persistent deployment.
+
+---
+
+## 📚 Detailed Guides
+
+For more detailed instructions, check these guides:
+- **`RENDER_DEPLOY_GUIDE.md`** - Complete Render deployment guide
+- **`FLYIO_DEPLOY_GUIDE.md`** - Fly.io deployment (no cold starts!)
+- **`VERCEL_DEPLOYMENT.md`** - Frontend deployment details
 
 ---
 
 ## 📞 Get Help
 
-**Railway Issues:**
-- [Railway Docs](https://docs.railway.app)
-- [Railway Discord](https://discord.gg/railway)
+**Render Issues:**
+- [Render Docs](https://render.com/docs)
+- [Render Community](https://community.render.com)
+
+**Fly.io Issues:**
+- [Fly.io Docs](https://fly.io/docs)
+- [Fly.io Discord](https://fly.io/discord)
 
 **Vercel Issues:**
 - [Vercel Docs](https://vercel.com/docs)
@@ -260,7 +293,7 @@ Copy the ngrok URL (e.g., `https://abc123.ngrok.io`) and use it as `VITE_API_URL
 ## 🎉 You're Done!
 
 After completing these steps:
-- ✅ Backend running on Railway
+- ✅ Backend running on Render (or Fly.io)
 - ✅ Frontend connected to backend
 - ✅ Registration/login working
 - ✅ Full MVP functional
@@ -273,6 +306,24 @@ After completing these steps:
 
 ---
 
-*Estimated time: 10-15 minutes*
-*Cost: Free (Railway free tier)*
+## 🆚 Which Option to Choose?
+
+### Choose **Render** if:
+- ✅ You want dashboard-based deployment (easier)
+- ✅ You're okay with cold starts (30-60s delay after inactivity)
+- ✅ You want to get started quickly
+
+### Choose **Fly.io** if:
+- ✅ You want no cold starts (always on)
+- ✅ You're comfortable with CLI
+- ✅ You want better free tier (3 VMs vs 1 service)
+- ✅ You want global deployment
+
+### My Recommendation:
+**Start with Render** (easier), then migrate to Fly.io if cold starts become annoying.
+
+---
+
+*Estimated time: 10-15 minutes (Render) or 15-20 minutes (Fly.io)*
+*Cost: Free*
 
