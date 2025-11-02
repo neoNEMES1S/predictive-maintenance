@@ -1,19 +1,13 @@
 {
   "version": 2,
-  "name": "semiconductor-insights",
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
-  "framework": "vite",
+  "installCommand": "npm install --prefix frontend",
+  "framework": null,
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://your-backend-url.com/api/:path*"
     }
-  ],
-  "env": {
-    "VITE_API_URL": "https://your-backend-url.com",
-    "VITE_SUPABASE_URL": "https://your-supabase-project.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "your-supabase-anon-key"
-  }
+  ]
 }
-
