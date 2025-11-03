@@ -31,25 +31,34 @@ export default function Login() {
         response = await authAPI.register(email, password, fullName)
       }
 
-      const { access_token, user_id } = response.data
+      // Handle Supabase response structure
+      const { user, session } = response.data
       
-      // Store token
-      localStorage.setItem('token', access_token)
-      localStorage.setItem('user_id', user_id)
-      
-      // Update auth store
-      setAuth(user_id, access_token)
+      if (session && user) {
+        const access_token = session.access_token
+        const user_id = user.id
+        
+        // Store token and user info
+        localStorage.setItem('token', access_token)
+        localStorage.setItem('user_id', user_id)
+        
+        // Update auth store
+        setAuth(access_token, user)
 
-      toast({
-        title: 'Success',
-        description: isLogin ? 'Logged in successfully' : 'Account created successfully',
-      })
+        toast({
+          title: 'Success',
+          description: isLogin ? 'Logged in successfully' : 'Account created successfully',
+        })
 
-      navigate('/dashboard')
+        navigate('/')
+      } else {
+        throw new Error('Invalid authentication response')
+      }
     } catch (error) {
+      console.error('Login error:', error)
       toast({
         title: 'Error',
-        description: error.response?.data?.detail || 'Authentication failed',
+        description: error.message || error.response?.data?.detail || 'Authentication failed',
         variant: 'destructive',
       })
     } finally {
