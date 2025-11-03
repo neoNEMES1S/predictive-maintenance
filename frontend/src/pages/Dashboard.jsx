@@ -19,6 +19,7 @@ import {
 export default function Dashboard() {
   const [uploads, setUploads] = useState([])
   const [loading, setLoading] = useState(true)
+  const [railwayConnected, setRailwayConnected] = useState(true)
   const navigate = useNavigate()
   const { toast } = useToast()
 
@@ -30,12 +31,20 @@ export default function Dashboard() {
     try {
       const response = await uploadAPI.getHistory()
       setUploads(response.data)
+      setRailwayConnected(true)
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load uploads',
-        variant: 'destructive',
-      })
+      // Handle 401 gracefully - Railway backend might not be configured
+      if (error.response?.status === 401) {
+        console.warn('Railway backend not configured or authentication failed')
+        setUploads([]) // Set empty uploads instead of showing error
+        setRailwayConnected(false)
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to load uploads',
+          variant: 'destructive',
+        })
+      }
     } finally {
       setLoading(false)
     }
@@ -74,6 +83,27 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-500 mt-1">Overview of your semiconductor data analysis</p>
       </div>
+
+      {/* Railway Backend Warning */}
+      {!railwayConnected && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-orange-900">Railway Backend Not Connected</h3>
+                <p className="text-sm text-orange-800 mt-1">
+                  The Railway backend is not configured or not accepting Supabase authentication tokens. 
+                  To use data upload and analysis features, configure your Railway backend to validate Supabase JWT tokens.
+                </p>
+                <p className="text-sm text-orange-700 mt-2">
+                  <strong>Environment variable needed:</strong> <code className="bg-orange-100 px-2 py-0.5 rounded">VITE_RAILWAY_API_URL</code>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -37,11 +37,16 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    // Only auto-logout for auth endpoint failures, not for data API failures
+    // This prevents logout when Railway backend is not configured or returns 401
+    const isAuthEndpoint = error.config?.url?.includes('/auth/')
+    
+    if (error.response?.status === 401 && isAuthEndpoint) {
       if (supabase) {
         await supabase.auth.signOut()
       }
       localStorage.removeItem('token')
+      localStorage.removeItem('user_id')
       window.location.href = '/login'
     }
     return Promise.reject(error)
