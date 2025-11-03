@@ -1,20 +1,30 @@
 import axios from 'axios'
+import { auth, supabase } from './supabaseClient'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// Railway API URL for non-auth endpoints
+const RAILWAY_API_URL = import.meta.env.VITE_RAILWAY_API_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: RAILWAY_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-// Add auth token to requests
+// Add auth token to requests (get token from Supabase session)
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+  async (config) => {
+    if (supabase) {
+      const { data } = await supabase.auth.getSession()
+      if (data?.session?.access_token) {
+        config.headers.Authorization = `Bearer ${data.session.access_token}`
+      }
+    } else {
+      // Fallback to localStorage if Supabase is not configured
+      const token = localStorage.getItem('token')
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
     }
     return config
   },
@@ -26,8 +36,11 @@ api.interceptors.request.use(
 // Handle auth errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
+      if (supabase) {
+        await supabase.auth.signOut()
+      }
       localStorage.removeItem('token')
       window.location.href = '/login'
     }
@@ -35,17 +48,39 @@ api.interceptors.response.use(
   }
 )
 
-// Auth API
+// Auth API - Uses Supabase
 export const authAPI = {
-  register: (email, password, fullName) =>
-    api.post('/api/auth/register', { email, password, full_name: fullName }),
+  register: async (email, password, fullName) => {
+    const { data, error } = await auth.signUp(email, password)
+    if (error) throw error
+    
+    // Update user metadata with full name if signup was successful
+    if (data.user && supabase) {
+      await supabase.auth.updateUser({
+        data: { full_name: fullName }
+      })
+    }
+    
+    return { data }
+  },
   
-  login: (email, password) =>
-    api.post('/api/auth/login', { email, password }),
+  login: async (email, password) => {
+    const { data, error } = await auth.signIn(email, password)
+    if (error) throw error
+    return { data }
+  },
   
-  logout: () => api.post('/api/auth/logout'),
+  logout: async () => {
+    const { error } = await auth.signOut()
+    if (error) throw error
+    return { data: null }
+  },
   
-  getMe: () => api.get('/api/auth/me'),
+  getMe: async () => {
+    const { data, error } = await auth.getUser()
+    if (error) throw error
+    return { data }
+  },
 }
 
 // Upload API
